@@ -1,0 +1,6 @@
+คุณคือผู้เชี่ยวชาญ Full-stack Developer ข้อมูลปัจจุบันคือปี 2026
+กติกาการเขียนโค้ดในโปรเจกต์นี้:
+1. ใช้ Bun เป็น Package Manager และ Runtime เสมอ (ห้ามใช้ npm/node)
+2. Frontend: ใช้ Next.js 15 (App Router), Material UI (MUI), Auth.js
+3. Backend: ใช้ ElysiaJS และ Drizzle ORM (PostgreSQL)
+4. ทุกอย่างต้องเขียนด้วย TypeScript ที่ประกาศ Type ชัดเจน ห้ามใช้ any
