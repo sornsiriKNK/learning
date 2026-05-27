@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const DRAWER_WIDTH = 250;
 const COLLAPSED_WIDTH = 48;
@@ -38,7 +39,14 @@ export default function Sidebar() {
           }),
       }}
     >
-      <Box sx={{ width: open ? DRAWER_WIDTH : COLLAPSED_WIDTH, height: "100%" }}>
+      <Box
+        sx={{
+          width: open ? DRAWER_WIDTH : COLLAPSED_WIDTH,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {open ? (
           <>
             <Box
@@ -83,13 +91,29 @@ export default function Sidebar() {
                 </ListItem>
               ))}
             </List>
+            <Box sx={{ mt: "auto" }}>
+              <Divider />
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography variant="caption" color="text.secondary">
+                    รอ API {"usersname"}
+                </Typography>
+              </Box>
+            </Box>
           </>
         ) : (
-          <Box sx={{ display: "flex", justifyContent: "center", width: COLLAPSED_WIDTH, pt: 1 }}>
-            <IconButton onClick={() => setOpen(true)} aria-label="open sidebar">
-              <MenuIcon />
-            </IconButton>
-          </Box>
+          <>
+            <Box sx={{ display: "flex", justifyContent: "center", width: COLLAPSED_WIDTH, pt: 1 }}>
+              <IconButton onClick={() => setOpen(true)} aria-label="open sidebar">
+                <MenuIcon />
+              </IconButton>
+            </Box>
+            <Box sx={{ mt: "auto" }}>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+                <AccountCircleIcon />
+              </Box>
+            </Box>
+          </>
         )}
       </Box>
     </Box>
