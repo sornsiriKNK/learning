@@ -13,13 +13,16 @@ import Typography from "@mui/material/Typography";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { useAuthStore } from "@/stores/auth-store";
 
 const DRAWER_WIDTH = 250;
 const COLLAPSED_WIDTH = 48;
 
 export default function Sidebar() {
   const [open, setOpen] = React.useState(true);
+  const user = useAuthStore((state) => state.user);
+  const displayName = user?.email ?? "ยังไม่ได้เข้าสู่ระบบ";
 
   return (
     <Box
@@ -94,8 +97,8 @@ export default function Sidebar() {
             <Box sx={{ mt: "auto" }}>
               <Divider />
               <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                    รอ API {"usersname"}
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {displayName}
                 </Typography>
               </Box>
             </Box>
@@ -109,7 +112,10 @@ export default function Sidebar() {
             </Box>
             <Box sx={{ mt: "auto" }}>
               <Divider />
-              <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "center", py: 1 }}
+                title={displayName}
+              >
                 <AccountCircleIcon />
               </Box>
             </Box>
