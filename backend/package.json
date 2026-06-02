@@ -3,7 +3,13 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "db:up": "podman compose -f ../docker-compose.yml up -d",
+    "db:down": "podman compose -f ../docker-compose.yml down",
+    "db:migrate": "bun run scripts/migrate.ts",
+    "db:seed": "bun run scripts/seed.ts",
+    "db:setup": "bun run db:migrate && bun run db:seed",
+    "db:init": "bun run db:up && bun run db:setup"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",

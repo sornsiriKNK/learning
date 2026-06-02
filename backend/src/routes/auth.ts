@@ -1,10 +1,12 @@
 import { Elysia, t } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { config } from "../config";
+import { verifyUserPassword } from "../services/auth";
 
 type JwtPayload = {
   sub: string;
   email: string;
+  name: string;
 };
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
@@ -17,10 +19,9 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
   .post(
     "/login",
     async ({ body, jwt: jwtPlugin, set }) => {
-      const isValidEmail = body.email === config.adminEmail;
-      const isValidPassword = body.password === config.adminPassword;
+      const user = await verifyUserPassword(body.email, body.password);
 
-      if (!isValidEmail || !isValidPassword) {
+      if (!user) {
         set.status = 401;
         return {
           success: false,
@@ -29,8 +30,9 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
       }
 
       const payload: JwtPayload = {
-        sub: config.adminEmail,
-        email: config.adminEmail,
+        sub: String(user.id),
+        email: user.email,
+        name: user.name,
       };
 
       const token = await jwtPlugin.sign(payload);
@@ -39,7 +41,9 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
         success: true,
         token,
         user: {
-          email: config.adminEmail,
+          id: user.id,
+          email: user.email,
+          name: user.name,
         },
       };
     },
@@ -66,10 +70,14 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
       return { success: false, message: "Invalid token" };
     }
 
+    const jwtPayload = profile as JwtPayload;
+
     return {
       success: true,
       user: {
-        email: (profile as JwtPayload).email,
+        id: Number(jwtPayload.sub),
+        email: jwtPayload.email,
+        name: jwtPayload.name,
       },
     };
   });

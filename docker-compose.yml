@@ -1,0 +1,20 @@
+# ใช้ได้ทั้ง Podman และ Docker
+# Podman: podman compose up -d
+# Docker: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: learning-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: learning
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

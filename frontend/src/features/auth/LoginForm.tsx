@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { useLogin } from "@/features/auth/use-login";
 import {
   getLoginFieldErrors,
   loginSchema,
@@ -21,18 +22,21 @@ const initialValues: LoginFormValues = {
 };
 
 export function LoginForm() {
-  const { mutate, isPending, error } = useLogin();
+  const router = useRouter();
   const [values, setValues] = useState<LoginFormValues>(initialValues);
   const [fieldErrors, setFieldErrors] = useState<LoginFormErrors>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange =
     (field: keyof LoginFormValues) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues((current) => ({ ...current, [field]: event.target.value }));
       setFieldErrors((current) => ({ ...current, [field]: undefined }));
+      setErrorMessage(null);
     };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const parsed = loginSchema.safeParse(values);
@@ -43,7 +47,24 @@ export function LoginForm() {
     }
 
     setFieldErrors({});
-    mutate(parsed.data);
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    const result = await signIn("credentials", {
+      email: parsed.data.email,
+      password: parsed.data.password,
+      redirect: false,
+    });
+
+    setIsSubmitting(false);
+
+    if (result?.error) {
+      setErrorMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      return;
+    }
+
+    router.push("/blog");
+    router.refresh();
   };
 
   return (
@@ -52,11 +73,11 @@ export function LoginForm() {
         เข้าสู่ระบบ
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        ใช้ admin@example.com / password123 สำหรับทดสอบ
+        ใช้ admin@example.com / password123 (จาก database)
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "grid", gap: 2 }}>
-        {error ? <Alert severity="error">{error.message}</Alert> : null}
+        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
         <TextField
           label="อีเมล"
@@ -79,8 +100,8 @@ export function LoginForm() {
           autoComplete="current-password"
         />
 
-        <Button type="submit" variant="contained" disabled={isPending} fullWidth>
-          {isPending ? "กำลังเข้าสู่ระบบ..." : "Login"}
+        <Button type="submit" variant="contained" disabled={isSubmitting} fullWidth>
+          {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </Button>
       </Box>
     </Paper>

@@ -14,15 +14,16 @@ import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { useAuthStore } from "@/stores/auth-store";
+import { useSession } from "next-auth/react";
 
 const DRAWER_WIDTH = 250;
 const COLLAPSED_WIDTH = 48;
 
 export default function Sidebar() {
   const [open, setOpen] = React.useState(true);
-  const user = useAuthStore((state) => state.user);
-  const displayName = user?.email ?? "ยังไม่ได้เข้าสู่ระบบ";
+  const { data: session } = useSession();
+  const displayName =
+    session?.user?.name ?? session?.user?.email ?? "ยังไม่ได้เข้าสู่ระบบ";
 
   return (
     <Box
