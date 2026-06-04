@@ -57,11 +57,11 @@ export default function CreateHealthPage() {
       hn: "",
       lab_no: "",
       test_date: "",
-      creatinine: 0,
-      egfr: 0,
+      creatinine: undefined,
+      egfr: undefined,
       protein: "",
-      blood: 0,
-      bacteria: 0,
+      blood: undefined,
+      bacteria: undefined,
     },
   });
 

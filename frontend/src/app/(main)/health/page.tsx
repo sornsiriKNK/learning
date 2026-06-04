@@ -1,42 +1,64 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
+"use client";
+
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import Link from "next/link";
-
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number,
-) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
+import { useListKidneyLabs } from "@/features/health/use-list-kidney-labs";
+import type { KidneyLabRecord } from "@/types/kidney-lab";
 
 const tableHeader = [
-  { label: 'Dessert (100g serving)', align: 'left' },
-  { label: 'Calories', align: 'right' },
-  { label: 'Fat&nbsp;(g)', align: 'right' },
-  { label: 'Carbs&nbsp;(g)', align: 'right' },
-  { label: 'Protein&nbsp;(g)', align: 'right' },
-] as const;
+  { label: "HN", align: "left" as const },
+  { label: "Lab No.", align: "left" as const },
+  { label: "วันที่ตรวจ", align: "left" as const },
+  { label: "Creatinine", align: "right" as const },
+  { label: "eGFR", align: "right" as const },
+  { label: "Protein", align: "left" as const },
+  { label: "Urine Blood", align: "left" as const },
+  { label: "Bacteria", align: "left" as const },
+  { label: "ผลผิดปกติ", align: "center" as const },
+];
+
+function formatCell(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+  return String(value);
+}
+
+function KidneyLabTableRow({ row }: { row: KidneyLabRecord }) {
+  return (
+    <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+      <TableCell component="th" scope="row">
+        {row.hn}
+      </TableCell>
+      <TableCell>{row.lab_no}</TableCell>
+      <TableCell>{row.test_date}</TableCell>
+      <TableCell align="right">
+        {formatCell(row.blood_test?.creatinine)}
+      </TableCell>
+      <TableCell align="right">{formatCell(row.blood_test?.egfr)}</TableCell>
+      <TableCell>{formatCell(row.urine_test?.protein)}</TableCell>
+      <TableCell>{formatCell(row.urine_test?.blood)}</TableCell>
+      <TableCell>{formatCell(row.urine_test?.bacteria)}</TableCell>
+      <TableCell align="center">{row.has_abnormal ? "ใช่" : "ไม่"}</TableCell>
+    </TableRow>
+  );
+}
 
 export default function HealthPage() {
+  const { data: records, isLoading, isError, error } = useListKidneyLabs();
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -46,7 +68,10 @@ export default function HealthPage() {
           </Typography>
         </Grid>
         <Grid size={2}>
-          <Link href="/health/create" style={{ display: "block", width: "100%", textDecoration: "none" }}>
+          <Link
+            href="/health/create"
+            style={{ display: "block", width: "100%", textDecoration: "none" }}
+          >
             <Button variant="contained" fullWidth>
               New Record
             </Button>
@@ -54,36 +79,48 @@ export default function HealthPage() {
         </Grid>
       </Grid>
 
+      {isError ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message}
+        </Alert>
+      ) : null}
+
       <TableContainer component={Paper}>
-        <Table stickyHeader sx={{ minWidth: 650, border: '1px solid #000', borderRadius: 1 }} aria-label="simple table">
+        <Table
+          stickyHeader
+          sx={{ minWidth: 650, border: "1px solid #000", borderRadius: 1 }}
+          aria-label="kidney lab records"
+        >
           <TableHead>
             <TableRow>
               {tableHeader.map((item) => (
-                <TableCell
-                  key={item.label}
-                  sx={{ backgroundColor: 'red' }}
-                  align={item.align}
-                >
+                <TableCell key={item.label} align={item.align}>
                   {item.label}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                key={row.name}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.name}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={tableHeader.length} align="center">
+                  <Box sx={{ py: 3, display: "flex", justifyContent: "center" }}>
+                    <CircularProgress size={32} />
+                  </Box>
                 </TableCell>
-                <TableCell align="right">{row.calories}</TableCell>
-                <TableCell align="right">{row.fat}</TableCell>
-                <TableCell align="right">{row.carbs}</TableCell>
-                <TableCell align="right">{row.protein}</TableCell>
               </TableRow>
-            ))}
+            ) : null}
+            {!isLoading && records?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={tableHeader.length} align="center">
+                  ยังไม่มีข้อมูล — กด New Record เพื่อเพิ่มผลตรวจ
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!isLoading &&
+              (records ?? []).map((row: KidneyLabRecord) => (
+                <KidneyLabTableRow key={row.id} row={row} />
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
