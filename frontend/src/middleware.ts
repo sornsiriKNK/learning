@@ -6,7 +6,12 @@ export default auth((request: NextRequest & { auth: unknown }) => {
   const isLoggedIn = Boolean(request.auth);
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/blog") && !isLoggedIn) {
+  const protectedPrefixes = ["/blog", "/health", "/money", "/drafts"];
+  const isProtected = protectedPrefixes.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+
+  if (isProtected && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -18,5 +23,11 @@ export default auth((request: NextRequest & { auth: unknown }) => {
 });
 
 export const config = {
-  matcher: ["/blog/:path*", "/login"],
+  matcher: [
+    "/blog/:path*",
+    "/health/:path*",
+    "/money/:path*",
+    "/drafts/:path*",
+    "/login",
+  ],
 };

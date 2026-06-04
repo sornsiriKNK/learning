@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
@@ -10,8 +12,10 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import ArticleIcon from "@mui/icons-material/Article";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import SendIcon from "@mui/icons-material/Send";
+import DraftsIcon from "@mui/icons-material/Drafts";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useSession } from "next-auth/react";
@@ -19,8 +23,26 @@ import { useSession } from "next-auth/react";
 const DRAWER_WIDTH = 250;
 const COLLAPSED_WIDTH = 48;
 
+type MenuItemType = {
+  label: string;
+  href: string;
+  icon: React.ReactElement;
+};
+
+const MenuItem: MenuItemType[] = [
+  { label: "Blog", href: "/blog", icon: <ArticleIcon /> },
+  { label: "Health", href: "/health", icon: <FavoriteIcon /> },
+  { label: "Money", href: "/money", icon: <SendIcon /> },
+  { label: "Drafts", href: "/drafts", icon: <DraftsIcon /> },
+];
+
+function isMenuItemActive(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Sidebar() {
   const [open, setOpen] = React.useState(true);
+  const pathname = usePathname();
   const { data: session } = useSession();
   const displayName =
     session?.user?.name ?? session?.user?.email ?? "ยังไม่ได้เข้าสู่ระบบ";
@@ -71,26 +93,15 @@ export default function Sidebar() {
             </Box>
             <Divider />
             <List>
-              {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-                <ListItem key={text} disablePadding>
-                  <ListItemButton>
-                    <ListItemIcon>
-                      {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-            <Divider />
-            <List>
-              {["All mail", "Trash", "Spam"].map((text, index) => (
-                <ListItem key={text} disablePadding>
-                  <ListItemButton>
-                    <ListItemIcon>
-                      {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} />
+              {MenuItem.map((item) => (
+                <ListItem key={item.href} disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href={item.href}
+                    selected={isMenuItemActive(pathname, item.href)}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.label} />
                   </ListItemButton>
                 </ListItem>
               ))}

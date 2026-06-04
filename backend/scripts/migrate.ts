@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 
@@ -10,12 +10,17 @@ if (!databaseUrl) {
 
 async function migrate() {
   const pool = new Pool({ connectionString: databaseUrl });
-  const migrationSql = readFileSync(
-    join(import.meta.dir, "../drizzle/0000_init.sql"),
-    "utf8",
-  );
+  const migrationsDir = join(import.meta.dir, "../drizzle");
+  const migrationFiles = readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
-  await pool.query(migrationSql);
+  for (const file of migrationFiles) {
+    const migrationSql = readFileSync(join(migrationsDir, file), "utf8");
+    await pool.query(migrationSql);
+    console.log(`Applied ${file}`);
+  }
+
   await pool.end();
 
   console.log("Migration completed");
