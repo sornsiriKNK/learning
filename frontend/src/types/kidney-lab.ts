@@ -1,20 +1,23 @@
-export type BloodTestInput = {
+/** Request / response types for `/health/kidney-labs` API */
+
+export type KidneyLabBloodTestInput = {
   creatinine?: number;
   egfr?: number;
 };
 
-export type UrineTestInput = {
+export type KidneyLabUrineTestInput = {
   protein?: string;
   blood?: string;
   bacteria?: string;
 };
 
-export type CreateKidneyLabInput = {
+/** POST /health/kidney-labs */
+export type CreateKidneyLabRequest = {
   hn: string;
   lab_no: string;
   test_date: string;
-  blood_test?: BloodTestInput;
-  urine_test?: UrineTestInput;
+  blood_test?: KidneyLabBloodTestInput;
+  urine_test?: KidneyLabUrineTestInput;
 };
 
 export type KidneyLabBloodTest = {
@@ -28,7 +31,8 @@ export type KidneyLabUrineTest = {
   bacteria: string | null;
 };
 
-export type KidneyLabRecordResponse = {
+/** Single record in GET list / GET :id / POST response */
+export type KidneyLabRecord = {
   id: number;
   hn: string;
   lab_no: string;
@@ -57,13 +61,20 @@ export type ApiMessageResponse = {
 };
 
 /** POST /health/kidney-labs — 201 */
-export type CreateKidneyLabResponse = ApiSuccessResponse<KidneyLabRecordResponse>;
+export type CreateKidneyLabResponse = ApiSuccessResponse<KidneyLabRecord>;
 
 /** GET /health/kidney-labs — 200 */
-export type ListKidneyLabsResponse = ApiSuccessResponse<KidneyLabRecordResponse[]>;
+export type ListKidneyLabsResponse = ApiSuccessResponse<KidneyLabRecord[]>;
 
 /** GET /health/kidney-labs/:id — 200 */
-export type GetKidneyLabResponse = ApiSuccessResponse<KidneyLabRecordResponse>;
+export type GetKidneyLabResponse = ApiSuccessResponse<KidneyLabRecord>;
 
 /** DELETE /health/kidney-labs/:id — 200 */
 export type DeleteKidneyLabResponse = ApiMessageResponse;
+
+export type KidneyLabApiResponse =
+  | CreateKidneyLabResponse
+  | ListKidneyLabsResponse
+  | GetKidneyLabResponse
+  | DeleteKidneyLabResponse
+  | ApiErrorResponse;
