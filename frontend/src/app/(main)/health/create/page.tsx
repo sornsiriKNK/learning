@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -9,20 +10,43 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  mapCreateHealthFormToApi,
+  type CreateHealthFormValues,
+} from "@/features/health/map-create-health-form";
+import { useCreateKidneyLab } from "@/features/health/use-create-kidney-lab";
 
-const formSchema = z.object({
-  lab_no: z.string().min(1, "กรอก Lab No."),
-  test_date: z.string().min(1, "กรอกวันที่ตรวจ"),
-  creatinine: z.number().min(1, "กรอก Creatinine"),
-  egfr: z.number().min(1, "กรอก eGFR"),
-  protein: z.string().min(1, "กรอก Protein"),
-  blood: z.number().min(1, "กรอก Blood"),
-  bacteria: z.number().min(1, "กรอก Bacteria"),
-});
+const formSchema = z
+  .object({
+    hn: z.string().min(1, "กรอก HN"),
+    lab_no: z.string().min(1, "กรอก Lab No."),
+    test_date: z.string().min(1, "กรอกวันที่ตรวจ"),
+    creatinine: z.number(),
+    egfr: z.number(),
+    protein: z.string(),
+    blood: z.number(),
+    bacteria: z.number(),
+  })
+  .superRefine((data, ctx) => {
+    const hasBlood =
+      !Number.isNaN(data.creatinine) || !Number.isNaN(data.egfr);
+    const hasUrine =
+      data.protein.trim() !== "" ||
+      !Number.isNaN(data.blood) ||
+      !Number.isNaN(data.bacteria);
+    if (!hasBlood && !hasUrine) {
+      ctx.addIssue({
+        code: "custom",
+        message: "กรอกผลเลือดหรือผลปัสสาวะอย่างน้อยหนึ่งส่วน",
+        path: ["lab_no"],
+      });
+    }
+  });
 
 type Inputs = z.infer<typeof formSchema>;
 
 export default function CreateHealthPage() {
+  const createKidneyLab = useCreateKidneyLab();
   const {
     register,
     handleSubmit,
@@ -30,6 +54,7 @@ export default function CreateHealthPage() {
   } = useForm<Inputs>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      hn: "",
       lab_no: "",
       test_date: "",
       creatinine: 0,
@@ -41,9 +66,9 @@ export default function CreateHealthPage() {
   });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data);
+    const body = mapCreateHealthFormToApi(data as CreateHealthFormValues);
+    createKidneyLab.mutate(body);
   };
-  console.log(errors);
   return (
       <Container>
       <Typography sx={{ mb: 2 }} variant="h4" component="h1">
@@ -51,7 +76,22 @@ export default function CreateHealthPage() {
         </Typography>
       <Box component="section" sx={{ p: 2, border: '1px solid grey', borderRadius: 2 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
+        {createKidneyLab.isError ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {createKidneyLab.error.message}
+          </Alert>
+        ) : null}
         <Grid container spacing={2}>
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              label="HN"
+              variant="outlined"
+              {...register("hn")}
+              error={Boolean(errors.hn)}
+              helperText={errors.hn?.message}
+            />
+          </Grid>
           <Grid size={12}>
             <TextField
               fullWidth
@@ -135,7 +175,16 @@ export default function CreateHealthPage() {
             />
           </Grid>
         </Grid>
-        <Button type="submit" fullWidth sx={{ mt: 2 }} variant="contained" color="primary">Save</Button>
+        <Button
+          type="submit"
+          fullWidth
+          sx={{ mt: 2 }}
+          variant="contained"
+          color="primary"
+          disabled={createKidneyLab.isPending}
+        >
+          {createKidneyLab.isPending ? "กำลังบันทึก..." : "Save"}
+        </Button>
         </form>
       </Box>
 
